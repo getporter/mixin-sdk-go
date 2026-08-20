@@ -7,6 +7,14 @@ import (
 	"github.com/spf13/afero"
 )
 
+// OutputsDir is where Install, Upgrade, Invoke, and Uninstall write step
+// outputs for Porter to collect, e.g.:
+//
+//	afero.WriteFile(ctx.FileSystem, filepath.Join(sdk.OutputsDir, name), value, 0644)
+//
+// It matches Porter's own runtime.MixinOutputsDir convention.
+const OutputsDir = "/cnab/app/porter/outputs"
+
 // Context provides the stdin/stdout/stderr streams and filesystem access a
 // Mixin needs while a command runs. Run wires one up to the real OS before
 // dispatching a command; the testing package provides an in-memory

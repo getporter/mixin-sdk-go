@@ -45,7 +45,7 @@ outputs:
 		t.Errorf("expected command stdout to be streamed, got %q", out.String())
 	}
 
-	number, err := afero.ReadFile(m.FileSystem, outputsDir+"/number")
+	number, err := afero.ReadFile(m.FileSystem, sdk.OutputsDir+"/number")
 	if err != nil {
 		t.Fatalf("reading number output: %v", err)
 	}
@@ -81,7 +81,7 @@ outputs:
 		t.Fatalf("runStep: %v", err)
 	}
 
-	fromfile, err := afero.ReadFile(m.FileSystem, outputsDir+"/fromfile")
+	fromfile, err := afero.ReadFile(m.FileSystem, sdk.OutputsDir+"/fromfile")
 	if err != nil {
 		t.Fatalf("reading fromfile output: %v", err)
 	}
@@ -108,7 +108,7 @@ outputs:
 		t.Fatalf("runStep: %v", err)
 	}
 
-	nested, err := afero.ReadFile(m.FileSystem, outputsDir+"/nested")
+	nested, err := afero.ReadFile(m.FileSystem, sdk.OutputsDir+"/nested")
 	if err != nil {
 		t.Fatalf("reading nested output: %v", err)
 	}

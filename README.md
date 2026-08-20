@@ -107,6 +107,28 @@ input.Config.Unmarshal(&cfg)
 (`"install"`, `"upgrade"`, `"uninstall"`, or the custom action name for
 `Invoke`).
 
+### Testing your Mixin
+
+The `testing` subpackage gives you an in-memory `Context` (buffered
+stdout/stderr, an in-memory filesystem, no real subprocess) plus fixture
+builders for `StepInput`/`BuildInput`:
+
+```go
+import mixintesting "github.com/getporter/mixin-sdk-go/testing"
+
+func TestInstall(t *testing.T) {
+	ctx := mixintesting.NewContext()
+	m := &HazmatMixin{Context: *ctx.Context}
+
+	err := m.Install(mixintesting.StepInput("install", "command: launch"))
+	// assert err, ctx.Stdout(), ctx.Output("someOutputName"), ...
+}
+```
+
+Or drive the whole CLI surface — args, stdin, command dispatch — with
+`mixintesting.Execute(m, []string{"install"}, ctx)`, the same entry point
+`Run` uses, without spawning a subprocess.
+
 ## Status
 
 This SDK is under active development; see [mixin-sdk-plan.md](./mixin-sdk-plan.md)
@@ -117,7 +139,7 @@ for the roadmap. Done so far:
 - [x] CLI/runtime dispatch (`runtime.go`, `context.go`)
 - [x] A real mixin ported to the SDK as a proof of concept (`examples/exec`)
 - [x] `mixin-init` scaffolding generator
-- [ ] In-memory testing helpers
+- [x] In-memory testing helpers (`testing/`)
 - [ ] Docs/tutorial
 
 ## License

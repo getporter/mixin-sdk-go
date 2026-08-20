@@ -13,13 +13,9 @@ import (
 	"strings"
 
 	"github.com/PaesslerAG/jsonpath"
+	sdk "github.com/getporter/mixin-sdk-go"
 	"github.com/spf13/afero"
 )
-
-// outputsDir matches Porter's runtime.MixinOutputsDir convention: Porter
-// collects a step's bundle outputs by reading every file in this directory
-// after the mixin exits.
-const outputsDir = "/cnab/app/porter/outputs"
 
 func (m *Mixin) execute(step Step) error {
 	cmd := exec.Command(step.Command, buildArgs(step)...)
@@ -87,7 +83,7 @@ func (h IgnoreError) shouldIgnore(exitCode int, stderr string) bool {
 }
 
 // writeOutputs resolves each of step's outputs (from stdout via regex or
-// jsonPath, or from a file the command wrote) and writes it to outputsDir
+// jsonPath, or from a file the command wrote) and writes it to sdk.OutputsDir
 // under its output name, in the shape Porter expects to find it in.
 func (m *Mixin) writeOutputs(step Step, stdout string) error {
 	if len(step.Outputs) == 0 {
@@ -103,8 +99,8 @@ func (m *Mixin) writeOutputs(step Step, stdout string) error {
 		return stdoutJSON, decodeErr
 	}
 
-	if err := m.FileSystem.MkdirAll(outputsDir, 0755); err != nil {
-		return fmt.Errorf("could not create outputs directory %s: %w", outputsDir, err)
+	if err := m.FileSystem.MkdirAll(sdk.OutputsDir, 0755); err != nil {
+		return fmt.Errorf("could not create outputs directory %s: %w", sdk.OutputsDir, err)
 	}
 
 	for _, o := range step.Outputs {
@@ -149,7 +145,7 @@ func (m *Mixin) writeOutputs(step Step, stdout string) error {
 			continue
 		}
 
-		if err := afero.WriteFile(m.FileSystem, filepath.Join(outputsDir, o.Name), value, 0644); err != nil {
+		if err := afero.WriteFile(m.FileSystem, filepath.Join(sdk.OutputsDir, o.Name), value, 0644); err != nil {
 			return fmt.Errorf("could not write output %q: %w", o.Name, err)
 		}
 	}
