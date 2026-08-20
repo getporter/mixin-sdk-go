@@ -35,6 +35,12 @@ func (m *Mixin) Build(cfg sdk.BuildInput, out io.Writer) error {
 	return nil
 }
 
+func (m *Mixin) Lint(cfg sdk.BuildInput) (sdk.LintResults, error) {
+	// TODO: check {{.Name}}'s steps for problems, or leave this returning
+	// nil, nil if there's nothing to check.
+	return nil, nil
+}
+
 func (m *Mixin) Install(step sdk.StepInput) error {
 	// TODO: implement the install action.
 	return nil

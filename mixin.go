@@ -6,7 +6,8 @@
 //
 // This package does not change the Porter-to-mixin wire protocol — a mixin
 // built with it is still a standalone binary invoked with build, schema,
-// version, install, upgrade, invoke, and uninstall over stdin/stdout.
+// version, install, upgrade, invoke, uninstall, and lint over
+// stdin/stdout.
 package sdk
 
 import "io"
@@ -35,6 +36,10 @@ type Mixin interface {
 	// command. Mixins with no buildtime dependencies can leave out writing
 	// anything to out.
 	Build(cfg BuildInput, out io.Writer) error
+
+	// Lint checks this mixin's steps in the manifest for problems, for the
+	// `lint` command. Mixins with nothing to check can return nil, nil.
+	Lint(cfg BuildInput) (LintResults, error)
 
 	// Install executes the `install` action.
 	Install(step StepInput) error

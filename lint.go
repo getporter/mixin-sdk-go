@@ -1,15 +1,5 @@
 package sdk
 
-// Linter is implemented by a Mixin that supports the `lint` command,
-// checking the manifest's steps for this mixin for problems. It's
-// optional — Porter calls `lint` best-effort and treats "unknown command"
-// (cobra's error for a subcommand that was never registered) as "this
-// mixin doesn't support linting," so a Mixin that doesn't implement Linter
-// works exactly as before.
-type Linter interface {
-	Lint(input BuildInput) (LintResults, error)
-}
-
 // LintLevel is the severity of a LintResult. The values (not just the
 // names) are part of the wire contract: Porter decodes the `lint` command's
 // JSON output straight into its own equivalent type, matching by these

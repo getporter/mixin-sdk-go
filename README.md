@@ -7,8 +7,8 @@ across a `cmd/` + `pkg/` tree.
 
 This does not change the Porter-to-mixin wire protocol. A mixin built with
 this SDK is still a standalone binary that Porter invokes with `build`,
-`schema`, `version`, `install`, `upgrade`, `invoke`, and `uninstall` over
-stdin/stdout — only how you build that binary changes.
+`schema`, `version`, `install`, `upgrade`, `invoke`, `uninstall`, and `lint`
+over stdin/stdout — only how you build that binary changes.
 
 ## Install
 
@@ -55,6 +55,12 @@ func (m *HazmatMixin) Schema() ([]byte, error) { return schema, nil }
 func (m *HazmatMixin) Build(cfg sdk.BuildInput, out io.Writer) error {
 	_, err := fmt.Fprintln(out, "RUN apt-get install -y hazmat-cli")
 	return err
+}
+
+// Lint checks this mixin's steps for problems; return nil, nil if there's
+// nothing to check.
+func (m *HazmatMixin) Lint(cfg sdk.BuildInput) (sdk.LintResults, error) {
+	return nil, nil
 }
 
 func (m *HazmatMixin) Install(step sdk.StepInput) error   { return m.run(step) }
@@ -107,10 +113,10 @@ This SDK is under active development; see [mixin-sdk-plan.md](./mixin-sdk-plan.m
 for the roadmap. Done so far:
 
 - [x] Core `Mixin` interface and types (`mixin.go`, `build.go`, `step.go`,
-      `version.go`)
+      `version.go`, `lint.go`)
 - [x] CLI/runtime dispatch (`runtime.go`, `context.go`)
-- [ ] A real mixin ported to the SDK as a proof of concept
-- [ ] `mixin-init` scaffolding generator
+- [x] A real mixin ported to the SDK as a proof of concept (`examples/exec`)
+- [x] `mixin-init` scaffolding generator
 - [ ] In-memory testing helpers
 - [ ] Docs/tutorial
 

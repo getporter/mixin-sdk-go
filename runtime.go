@@ -55,19 +55,12 @@ func newRootCommand(m Mixin, rtCtx *Context) *cobra.Command {
 		newVersionCommand(m, rtCtx),
 		newSchemaCommand(m, rtCtx),
 		newBuildCommand(m, rtCtx),
+		newLintCommand(m, rtCtx),
 		newStepCommand("install", rtCtx, m.Install),
 		newStepCommand("upgrade", rtCtx, m.Upgrade),
 		newStepCommand("uninstall", rtCtx, m.Uninstall),
 		newInvokeCommand(m, rtCtx),
 	)
-
-	// Lint is optional: only register the subcommand when m implements
-	// it, so Porter's cobra "unknown command" error — its documented
-	// signal that a mixin doesn't support linting — fires naturally for
-	// every Mixin that doesn't.
-	if l, ok := m.(Linter); ok {
-		cmd.AddCommand(newLintCommand(l, rtCtx))
-	}
 
 	return cmd
 }
@@ -114,7 +107,7 @@ func newBuildCommand(m Mixin, rtCtx *Context) *cobra.Command {
 	}
 }
 
-func newLintCommand(l Linter, rtCtx *Context) *cobra.Command {
+func newLintCommand(m Mixin, rtCtx *Context) *cobra.Command {
 	return &cobra.Command{
 		Use:   "lint",
 		Short: "Check sections of the bundle associated with this mixin for problems",
@@ -123,7 +116,7 @@ func newLintCommand(l Linter, rtCtx *Context) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			results, err := l.Lint(input)
+			results, err := m.Lint(input)
 			if err != nil {
 				return err
 			}

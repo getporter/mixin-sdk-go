@@ -22,6 +22,10 @@ type fakeMixin struct {
 	buildErr error
 	gotBuild BuildInput
 
+	lintErr     error
+	gotLint     BuildInput
+	lintResults LintResults
+
 	installErr error
 	gotInstall StepInput
 
@@ -47,6 +51,11 @@ func (m *fakeMixin) Build(cfg BuildInput, out io.Writer) error {
 	}
 	_, err := io.WriteString(out, "RUN echo hi\n")
 	return err
+}
+
+func (m *fakeMixin) Lint(cfg BuildInput) (LintResults, error) {
+	m.gotLint = cfg
+	return m.lintResults, m.lintErr
 }
 
 func (m *fakeMixin) Install(step StepInput) error {
@@ -323,36 +332,9 @@ type errString string
 
 func (e errString) Error() string { return string(e) }
 
-// lintingMixin adds an optional Lint implementation on top of fakeMixin, to
-// exercise the interface-assertion registration in newRootCommand.
-type lintingMixin struct {
-	fakeMixin
-
-	lintErr  error
-	gotLint  BuildInput
-	toReturn LintResults
-}
-
-func (m *lintingMixin) Lint(input BuildInput) (LintResults, error) {
-	m.gotLint = input
-	return m.toReturn, m.lintErr
-}
-
-func TestExecute_Lint_NotImplemented(t *testing.T) {
-	m := &fakeMixin{}
-	rtCtx, _, errOut := newTestContext("")
-	code := Execute(m, []string{"lint"}, rtCtx)
-	if code != 1 {
-		t.Fatalf("exit code = %d, want 1", code)
-	}
-	if !strings.Contains(errOut.String(), "unknown command") {
-		t.Errorf("stderr = %q, want mention of unknown command", errOut.String())
-	}
-}
-
 func TestExecute_Lint(t *testing.T) {
-	m := &lintingMixin{
-		toReturn: LintResults{
+	m := &fakeMixin{
+		lintResults: LintResults{
 			{
 				Level:    LintLevelWarning,
 				Location: LintLocation{Action: "install", Mixin: "hazmat", StepNumber: 1, StepDescription: "say hi"},
@@ -392,7 +374,7 @@ func TestExecute_Lint(t *testing.T) {
 }
 
 func TestExecute_Lint_MixinErrorPropagates(t *testing.T) {
-	m := &lintingMixin{lintErr: errString("lint boom")}
+	m := &fakeMixin{lintErr: errString("lint boom")}
 	rtCtx, _, errOut := newTestContext("")
 	code := Execute(m, []string{"lint"}, rtCtx)
 	if code != 1 {
