@@ -1,0 +1,56 @@
+package main
+
+import (
+	"io"
+
+	sdk "github.com/getporter/mixin-sdk-go"
+)
+
+func main() {
+	sdk.Run(&Mixin{})
+}
+
+// version is overridden at build time via -ldflags "-X main.version=...".
+var version = "dev"
+
+// Mixin implements sdk.Mixin. Fill in each method with {{.Name}}'s
+// behavior; see https://porter.sh/mixin-dev-guide/commands/ for what
+// Porter expects from each command.
+type Mixin struct {
+	sdk.Context
+}
+
+func (m *Mixin) Version() sdk.VersionInfo {
+	return sdk.VersionInfo{Name: "{{.Name}}", Author: "{{.Author}}", Version: version}
+}
+
+func (m *Mixin) Schema() ([]byte, error) {
+	// TODO: return {{.Name}}'s JSON schema, describing its config and step shapes.
+	return []byte(`{}`), nil
+}
+
+func (m *Mixin) Build(cfg sdk.BuildInput, out io.Writer) error {
+	// TODO: write any Dockerfile lines {{.Name}} needs at build time, or
+	// leave this empty if it has no buildtime dependencies.
+	return nil
+}
+
+func (m *Mixin) Install(step sdk.StepInput) error {
+	// TODO: implement the install action.
+	return nil
+}
+
+func (m *Mixin) Upgrade(step sdk.StepInput) error {
+	// TODO: implement the upgrade action.
+	return nil
+}
+
+func (m *Mixin) Invoke(action string, step sdk.StepInput) error {
+	// TODO: implement any custom actions.
+	return nil
+}
+
+func (m *Mixin) Uninstall(step sdk.StepInput) error {
+	// TODO: implement the uninstall action.
+	return nil
+}
