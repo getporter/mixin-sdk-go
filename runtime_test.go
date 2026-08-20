@@ -2,6 +2,7 @@ package sdk
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"strings"
 	"testing"
@@ -156,6 +157,9 @@ func TestExecute_Build(t *testing.T) {
 	}
 	if cfg.ClientVersion != "1.2.3" {
 		t.Errorf("ClientVersion = %q, want 1.2.3", cfg.ClientVersion)
+	}
+	if len(m.gotBuild.Actions) == 0 {
+		t.Error("Actions was empty, want the raw actions YAML")
 	}
 }
 
@@ -318,3 +322,83 @@ func TestExecute_ContextInjected(t *testing.T) {
 type errString string
 
 func (e errString) Error() string { return string(e) }
+
+// lintingMixin adds an optional Lint implementation on top of fakeMixin, to
+// exercise the interface-assertion registration in newRootCommand.
+type lintingMixin struct {
+	fakeMixin
+
+	lintErr  error
+	gotLint  BuildInput
+	toReturn LintResults
+}
+
+func (m *lintingMixin) Lint(input BuildInput) (LintResults, error) {
+	m.gotLint = input
+	return m.toReturn, m.lintErr
+}
+
+func TestExecute_Lint_NotImplemented(t *testing.T) {
+	m := &fakeMixin{}
+	rtCtx, _, errOut := newTestContext("")
+	code := Execute(m, []string{"lint"}, rtCtx)
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1", code)
+	}
+	if !strings.Contains(errOut.String(), "unknown command") {
+		t.Errorf("stderr = %q, want mention of unknown command", errOut.String())
+	}
+}
+
+func TestExecute_Lint(t *testing.T) {
+	m := &lintingMixin{
+		toReturn: LintResults{
+			{
+				Level:    LintLevelWarning,
+				Location: LintLocation{Action: "install", Mixin: "hazmat", StepNumber: 1, StepDescription: "say hi"},
+				Code:     "hazmat-100",
+				Title:    "example warning",
+			},
+		},
+	}
+	stdin := "config:\n  clientVersion: 1.2.3\nactions:\n  install:\n  - hazmat:\n      command: echo hi\n"
+	rtCtx, out, _ := newTestContext(stdin)
+
+	code := Execute(m, []string{"lint"}, rtCtx)
+	if code != 0 {
+		t.Fatalf("exit code = %d, want 0", code)
+	}
+
+	var cfg struct {
+		ClientVersion string `yaml:"clientVersion"`
+	}
+	if err := m.gotLint.Config.Unmarshal(&cfg); err != nil {
+		t.Fatalf("Unmarshal config: %v", err)
+	}
+	if cfg.ClientVersion != "1.2.3" {
+		t.Errorf("ClientVersion = %q, want 1.2.3", cfg.ClientVersion)
+	}
+	if len(m.gotLint.Actions) == 0 {
+		t.Error("Actions was empty, want the raw actions YAML")
+	}
+
+	var results LintResults
+	if err := json.Unmarshal(out.Bytes(), &results); err != nil {
+		t.Fatalf("stdout is not valid JSON: %v\n%s", err, out.String())
+	}
+	if len(results) != 1 || results[0].Code != "hazmat-100" || results[0].Level != LintLevelWarning {
+		t.Errorf("results = %+v, want a single hazmat-100 warning", results)
+	}
+}
+
+func TestExecute_Lint_MixinErrorPropagates(t *testing.T) {
+	m := &lintingMixin{lintErr: errString("lint boom")}
+	rtCtx, _, errOut := newTestContext("")
+	code := Execute(m, []string{"lint"}, rtCtx)
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1", code)
+	}
+	if !strings.Contains(errOut.String(), "lint boom") {
+		t.Errorf("stderr = %q, want substring %q", errOut.String(), "lint boom")
+	}
+}

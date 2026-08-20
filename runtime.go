@@ -1,6 +1,7 @@
 package sdk
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -59,6 +60,15 @@ func newRootCommand(m Mixin, rtCtx *Context) *cobra.Command {
 		newStepCommand("uninstall", rtCtx, m.Uninstall),
 		newInvokeCommand(m, rtCtx),
 	)
+
+	// Lint is optional: only register the subcommand when m implements
+	// it, so Porter's cobra "unknown command" error — its documented
+	// signal that a mixin doesn't support linting — fires naturally for
+	// every Mixin that doesn't.
+	if l, ok := m.(Linter); ok {
+		cmd.AddCommand(newLintCommand(l, rtCtx))
+	}
+
 	return cmd
 }
 
@@ -95,17 +105,53 @@ func newBuildCommand(m Mixin, rtCtx *Context) *cobra.Command {
 		Use:   "build",
 		Short: "Generate Dockerfile lines for the bundle invocation image",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			doc, err := io.ReadAll(rtCtx.In)
+			input, err := readBuildInput(rtCtx)
 			if err != nil {
-				return fmt.Errorf("could not read build input from stdin: %w", err)
+				return err
 			}
-			cfg, err := extractRawYAML(doc, "config")
-			if err != nil {
-				return fmt.Errorf("could not parse build input: %w", err)
-			}
-			return m.Build(BuildInput{Config: cfg}, rtCtx.Out)
+			return m.Build(input, rtCtx.Out)
 		},
 	}
+}
+
+func newLintCommand(l Linter, rtCtx *Context) *cobra.Command {
+	return &cobra.Command{
+		Use:   "lint",
+		Short: "Check sections of the bundle associated with this mixin for problems",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			input, err := readBuildInput(rtCtx)
+			if err != nil {
+				return err
+			}
+			results, err := l.Lint(input)
+			if err != nil {
+				return err
+			}
+			return json.NewEncoder(rtCtx.Out).Encode(results)
+		},
+	}
+}
+
+// readBuildInput parses the stdin shape Porter sends both build and lint:
+//
+//	config: {...}
+//	actions:
+//	  install: [...]
+//	  upgrade: [...]
+func readBuildInput(rtCtx *Context) (BuildInput, error) {
+	doc, err := io.ReadAll(rtCtx.In)
+	if err != nil {
+		return BuildInput{}, fmt.Errorf("could not read build input from stdin: %w", err)
+	}
+	cfg, err := extractRawYAML(doc, "config")
+	if err != nil {
+		return BuildInput{}, fmt.Errorf("could not parse build input: %w", err)
+	}
+	actions, err := extractRawYAML(doc, "actions")
+	if err != nil {
+		return BuildInput{}, fmt.Errorf("could not parse build input: %w", err)
+	}
+	return BuildInput{Config: cfg, Actions: actions}, nil
 }
 
 // newStepCommand builds the install/upgrade/uninstall commands, which all
