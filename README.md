@@ -129,6 +129,32 @@ Or drive the whole CLI surface — args, stdin, command dispatch — with
 `mixintesting.Execute(m, []string{"install"}, ctx)`, the same entry point
 `Run` uses, without spawning a subprocess.
 
+### Building and releasing your Mixin
+
+The `mage` subpackage gives you `Build`/`Test`/`Publish` for a thin
+`magefile.go`, instead of copying Porter's full mage-based release
+tooling:
+
+```go
+//go:build mage
+package main
+
+import sdkmage "github.com/getporter/mixin-sdk-go/mage"
+
+var version = "dev" // set by CI, e.g. from `git describe`
+
+var m = sdkmage.Magefile{Dir: ".", Pkg: ".", Name: "hazmat", Version: version, BinDir: "bin/mixins/hazmat"}
+
+func Build() error   { return m.Build() }
+func Test() error    { return m.Test() }
+func Publish() error { return m.Publish() }
+```
+
+`Publish` cross-compiles for Porter's standard release platforms and
+writes each binary plus a SHA-256 checksum to `bin/mixins/hazmat/dist/` —
+it does not push anywhere; wire your own CI release step (e.g.
+`gh release create`) to upload `dist/`'s contents.
+
 ## Status
 
 This SDK is under active development; see [mixin-sdk-plan.md](./mixin-sdk-plan.md)
@@ -141,6 +167,7 @@ for the roadmap. Done so far:
 - [x] `mixin-init` scaffolding generator
 - [x] In-memory testing helpers (`testing/`)
 - [ ] Docs/tutorial
+- [x] (Stretch) Thin `magefile.go` helpers (`mage/`)
 
 ## License
 
