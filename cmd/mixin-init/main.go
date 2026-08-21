@@ -52,5 +52,10 @@ func run(args []string) error {
 	}
 
 	fmt.Printf("Scaffolded %s in %s\n", opts.Name, opts.Dir)
+	if opts.SDKPath == "" {
+		fmt.Println("\nmixin-sdk-go is pre-1.0: breaking changes can land in a minor")
+		fmt.Println("release. Pin an exact version once you ship, and review")
+		fmt.Println("`go get -u github.com/getporter/mixin-sdk-go`'s diff before upgrading.")
+	}
 	return nil
 }

@@ -10,6 +10,10 @@ this SDK is still a standalone binary that Porter invokes with `build`,
 `schema`, `version`, `install`, `upgrade`, `invoke`, `uninstall`, and `lint`
 over stdin/stdout — only how you build that binary changes.
 
+New to the SDK? [**docs/tutorial.md**](./docs/tutorial.md) walks through
+building a complete mixin step by step. What follows here is the concise
+reference version.
+
 ## Install
 
 ```sh
@@ -157,17 +161,25 @@ it does not push anywhere; wire your own CI release step (e.g.
 
 ## Status
 
-This SDK is under active development; see [mixin-sdk-plan.md](./mixin-sdk-plan.md)
-for the roadmap. Done so far:
+This SDK is under active development.
 
-- [x] Core `Mixin` interface and types (`mixin.go`, `build.go`, `step.go`,
-      `version.go`, `lint.go`)
-- [x] CLI/runtime dispatch (`runtime.go`, `context.go`)
-- [x] A real mixin ported to the SDK as a proof of concept (`examples/exec`)
-- [x] `mixin-init` scaffolding generator
-- [x] In-memory testing helpers (`testing/`)
-- [ ] Docs/tutorial
-- [x] (Stretch) Thin `magefile.go` helpers (`mage/`)
+## Versioning
+
+See [docs/versioning.md](./docs/versioning.md) for the full policy. In
+short: `mixin-sdk-go` is pre-1.0 (`v0.x.y`): breaking changes may land in a
+minor release, per semver's own pre-1.0 rule. Pin an exact version once
+your mixin ships, rather than tracking `@latest`, and review the diff
+before bumping it.
+
+Once the `Mixin` interface settles, this SDK will cut `v1.0.0`. After
+that, anything slated for removal gets a deprecation window first: it's
+marked `// Deprecated:` in godoc for at least one release before it's
+actually removed.
+
+A given Porter release may require a newer `mixin-sdk-go` version — e.g.
+if the mixin wire protocol changes. If that happens, it's a breaking
+change to this SDK too, and follows the same rule as any other: it isn't
+required silently, it's called out as a breaking change in that release.
 
 ## License
 
