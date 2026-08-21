@@ -41,9 +41,12 @@ type Platform struct {
 
 // Platforms is Porter's standard mixin release matrix.
 var Platforms = []Platform{
-	{"linux", "amd64"}, {"linux", "arm64"},
-	{"darwin", "amd64"}, {"darwin", "arm64"},
-	{"windows", "amd64"}, {"windows", "arm64"},
+	{"linux", "amd64"},
+	{"linux", "arm64"},
+	{"darwin", "amd64"},
+	{"darwin", "arm64"},
+	{"windows", "amd64"},
+	{"windows", "arm64"},
 }
 
 // Magefile holds what Build/Test/Publish need for one mixin.
@@ -151,7 +154,7 @@ func writeChecksum(path string) error {
 	if err != nil {
 		return fmt.Errorf("could not open %s for checksumming: %w", path, err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	hash := sha256.New()
 	if _, err := io.Copy(hash, f); err != nil {

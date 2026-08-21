@@ -63,7 +63,7 @@ func TestExecute_FileOutput(t *testing.T) {
 	rtCtx, _ := newTestContext()
 	m := &Mixin{Context: *rtCtx}
 
-	if err := afero.WriteFile(m.FileSystem, "out.txt", []byte("file-contents\n"), 0644); err != nil {
+	if err := afero.WriteFile(m.FileSystem, "out.txt", []byte("file-contents\n"), 0o644); err != nil {
 		t.Fatalf("seeding out.txt: %v", err)
 	}
 

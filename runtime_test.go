@@ -301,7 +301,7 @@ func TestExecute_StepErrors(t *testing.T) {
 
 func TestExecute_MixinErrorPropagates(t *testing.T) {
 	wantErr := "boom"
-	m := &fakeMixin{installErr: errString(wantErr)}
+	m := &fakeMixin{installErr: testError(wantErr)}
 	rtCtx, _, errOut := newTestContext(installStdin)
 	code := Execute(m, []string{"install"}, rtCtx)
 	if code != 1 {
@@ -328,9 +328,9 @@ func TestExecute_ContextInjected(t *testing.T) {
 	}
 }
 
-type errString string
+type testError string
 
-func (e errString) Error() string { return string(e) }
+func (e testError) Error() string { return string(e) }
 
 func TestExecute_Lint(t *testing.T) {
 	m := &fakeMixin{
@@ -374,7 +374,7 @@ func TestExecute_Lint(t *testing.T) {
 }
 
 func TestExecute_Lint_MixinErrorPropagates(t *testing.T) {
-	m := &fakeMixin{lintErr: errString("lint boom")}
+	m := &fakeMixin{lintErr: testError("lint boom")}
 	rtCtx, _, errOut := newTestContext("")
 	code := Execute(m, []string{"lint"}, rtCtx)
 	if code != 1 {

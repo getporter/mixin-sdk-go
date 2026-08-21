@@ -1,0 +1,141 @@
+version: "2"
+run:
+  concurrency: 4
+  timeout: 5m
+  tests: true
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 50
+
+linters:
+  enable:
+    # correctness
+    - govet
+    - staticcheck
+    - unused
+    - errcheck
+    - errorlint
+    - nilerr
+    - forcetypeassert
+    - copyloopvar
+    - durationcheck
+    - reassign
+    # style
+    - gocritic
+    - whitespace
+    - godot
+    - misspell
+    - dupword
+    - predeclared
+    - errname
+    - asciicheck
+    - bidichk
+    # complexity
+    - gocyclo
+    - nestif
+    - funlen
+    - dupl
+    # performance
+    - perfsprint
+    - unconvert
+    - ineffassign
+    - goconst
+    # testing
+    - thelper
+    - usetesting
+    # modernization & meta
+    - modernize
+    - exptostd
+    - intrange
+    - usestdlibvars
+    - exhaustive
+    - nolintlint
+
+  disable:
+    - lll
+    - prealloc
+    - wrapcheck
+    - err113
+    - mnd
+    - iface
+    - nakedret
+    - noinlineerr
+    - gocognit
+    - cyclop
+    - depguard
+    - goheader
+    - importas
+    - funcorder
+    - godoclint
+    - varnamelen
+    - exhaustruct
+    - gochecknoglobals
+    - gochecknoinits
+    - unparam
+    - makezero
+    - testpackage
+    - embeddedstructfieldcheck
+    - iotamixing
+    - unqueryvet
+    - recvcheck
+    - mirror
+    - protogetter
+    - spancheck
+    - zerologlint
+    # dropped after evaluating against this repo's established style
+    - revive       # unused-parameter fires on required interface/cobra
+                    # signatures (e.g. *cobra.Command handlers) — renaming
+                    # params to _ there loses godoc value
+    - wsl_v5       # blank-line style not adopted by this codebase; would
+                    # force a repo-wide reformat unrelated to CI setup
+    - gosec        # G204/G301/G304/G306 fire on this tool's core job
+                    # (shelling out to `go`, writing build output) —
+                    # not a real risk here
+    - noctx        # only fires in test helper exec.Command calls
+    - paralleltest # t.Parallel() not adopted by the existing test suite
+    - containedctx
+    - fatcontext
+    - sqlclosecheck
+    - rowserrcheck
+    - bodyclose
+    - sloglint
+    - loggercheck
+    - testifylint  # this module doesn't depend on testify
+
+  exclusions:
+    paths:
+      - vendor$
+      - third_party$
+
+  settings:
+    dupl:
+      threshold: 100
+    errcheck:
+      check-type-assertions: true
+    funlen:
+      lines: 120
+      statements: 80
+    goconst:
+      min-len: 3
+      min-occurrences: 4
+    gocyclo:
+      min-complexity: 20
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+
+formatters:
+  enable:
+    - gofmt
+    - gofumpt
+  disable:
+    - gci
+    - goimports
+    - golines
+    - swaggo
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$

@@ -33,7 +33,7 @@ func Execute(m Mixin, args []string, rtCtx *Context) int {
 	cmd.SetErr(rtCtx.Err)
 
 	if err := cmd.Execute(); err != nil {
-		fmt.Fprintln(rtCtx.Err, err)
+		_, _ = fmt.Fprintln(rtCtx.Err, err)
 		return 1
 	}
 	return 0

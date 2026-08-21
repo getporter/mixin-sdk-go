@@ -25,8 +25,8 @@ func main() {
 func run(args []string) error {
 	fs := flag.NewFlagSet("mixin-init", flag.ContinueOnError)
 	fs.Usage = func() {
-		fmt.Fprintln(fs.Output(), "Usage: mixin-init <name> [flags]")
-		fmt.Fprintln(fs.Output(), "\nScaffolds a new Porter mixin named <name> against mixin-sdk-go.")
+		_, _ = fmt.Fprintln(fs.Output(), "Usage: mixin-init <name> [flags]")
+		_, _ = fmt.Fprintln(fs.Output(), "\nScaffolds a new Porter mixin named <name> against mixin-sdk-go.")
 		fs.PrintDefaults()
 	}
 

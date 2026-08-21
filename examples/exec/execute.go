@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -36,7 +37,8 @@ func (m *Mixin) execute(step Step) error {
 	}
 
 	runErr := cmd.Run()
-	if exitErr, ok := runErr.(*exec.ExitError); ok && step.IgnoreError.shouldIgnore(exitErr.ExitCode(), stderr.String()) {
+	var exitErr *exec.ExitError
+	if errors.As(runErr, &exitErr) && step.IgnoreError.shouldIgnore(exitErr.ExitCode(), stderr.String()) {
 		runErr = nil
 	}
 	if runErr != nil {
@@ -99,7 +101,7 @@ func (m *Mixin) writeOutputs(step Step, stdout string) error {
 		return stdoutJSON, decodeErr
 	}
 
-	if err := m.FileSystem.MkdirAll(sdk.OutputsDir, 0755); err != nil {
+	if err := m.FileSystem.MkdirAll(sdk.OutputsDir, 0o755); err != nil {
 		return fmt.Errorf("could not create outputs directory %s: %w", sdk.OutputsDir, err)
 	}
 
@@ -145,7 +147,7 @@ func (m *Mixin) writeOutputs(step Step, stdout string) error {
 			continue
 		}
 
-		if err := afero.WriteFile(m.FileSystem, filepath.Join(sdk.OutputsDir, o.Name), value, 0644); err != nil {
+		if err := afero.WriteFile(m.FileSystem, filepath.Join(sdk.OutputsDir, o.Name), value, 0o644); err != nil {
 			return fmt.Errorf("could not write output %q: %w", o.Name, err)
 		}
 	}

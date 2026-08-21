@@ -2,7 +2,7 @@ package sdk
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 )
 
 // ValidateSchema reports whether schema is well-formed JSON. Mixin authors
@@ -10,7 +10,7 @@ import (
 // broken schema before Porter does.
 func ValidateSchema(schema []byte) error {
 	if !json.Valid(schema) {
-		return fmt.Errorf("schema is not valid JSON")
+		return errors.New("schema is not valid JSON")
 	}
 	return nil
 }

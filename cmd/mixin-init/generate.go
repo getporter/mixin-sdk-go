@@ -78,7 +78,7 @@ func Generate(opts Options) error {
 	if err != nil {
 		return fmt.Errorf("could not render main.go: %w", err)
 	}
-	if err := os.WriteFile(filepath.Join(opts.Dir, "main.go"), mainGo, 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(opts.Dir, "main.go"), mainGo, 0o644); err != nil {
 		return fmt.Errorf("could not write main.go: %w", err)
 	}
 
@@ -87,10 +87,10 @@ func Generate(opts Options) error {
 		return fmt.Errorf("could not render CI workflow: %w", err)
 	}
 	workflowDir := filepath.Join(opts.Dir, ".github", "workflows")
-	if err := os.MkdirAll(workflowDir, 0755); err != nil {
+	if err := os.MkdirAll(workflowDir, 0o755); err != nil {
 		return fmt.Errorf("could not create %s: %w", workflowDir, err)
 	}
-	if err := os.WriteFile(filepath.Join(workflowDir, opts.Name+".yml"), ciYML, 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(workflowDir, opts.Name+".yml"), ciYML, 0o644); err != nil {
 		return fmt.Errorf("could not write CI workflow: %w", err)
 	}
 
@@ -98,7 +98,7 @@ func Generate(opts Options) error {
 	if err != nil {
 		return fmt.Errorf("could not read LICENSE template: %w", err)
 	}
-	if err := os.WriteFile(filepath.Join(opts.Dir, "LICENSE"), license, 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(opts.Dir, "LICENSE"), license, 0o644); err != nil {
 		return fmt.Errorf("could not write LICENSE: %w", err)
 	}
 
@@ -138,7 +138,7 @@ func prepareDir(dir string, force bool) error {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return os.MkdirAll(dir, 0755)
+			return os.MkdirAll(dir, 0o755)
 		}
 		return fmt.Errorf("could not inspect %s: %w", dir, err)
 	}
