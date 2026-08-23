@@ -184,6 +184,8 @@ func TestExecute_Build_NoConfig(t *testing.T) {
 	}
 }
 
+const actionInstall = "install"
+
 const installStdin = `install:
 - hazmat:
     description: "say hi"
@@ -193,11 +195,11 @@ const installStdin = `install:
 func TestExecute_Install(t *testing.T) {
 	m := &fakeMixin{}
 	rtCtx, _, _ := newTestContext(installStdin)
-	code := Execute(m, []string{"install"}, rtCtx)
+	code := Execute(m, []string{actionInstall}, rtCtx)
 	if code != 0 {
 		t.Fatalf("exit code = %d, want 0", code)
 	}
-	if m.gotInstall.Action != "install" {
+	if m.gotInstall.Action != actionInstall {
 		t.Errorf("Action = %q, want install", m.gotInstall.Action)
 	}
 
@@ -219,11 +221,11 @@ func TestExecute_Install_FromFile(t *testing.T) {
 	if err := afero.WriteFile(rtCtx.FileSystem, "step.yaml", []byte(installStdin), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	code := Execute(m, []string{"install", "-f", "step.yaml"}, rtCtx)
+	code := Execute(m, []string{actionInstall, "-f", "step.yaml"}, rtCtx)
 	if code != 0 {
 		t.Fatalf("exit code = %d, want 0", code)
 	}
-	if m.gotInstall.Action != "install" {
+	if m.gotInstall.Action != actionInstall {
 		t.Errorf("Action = %q, want install", m.gotInstall.Action)
 	}
 }
@@ -277,11 +279,11 @@ func TestExecute_StepErrors(t *testing.T) {
 		stdin string
 		want  string
 	}{
-		{"no actions", []string{"install"}, "", "expected exactly one action"},
-		{"two actions", []string{"install"}, "install:\n- hazmat: {}\nupgrade:\n- hazmat: {}\n", "expected exactly one action"},
-		{"two steps", []string{"install"}, "install:\n- hazmat: {}\n- hazmat: {}\n", "expected exactly one step"},
-		{"malformed step", []string{"install"}, "install:\n- hazmat: {}\n  other: {}\n", "malformed step"},
-		{"missing file", []string{"install", "-f", "missing.yaml"}, "", "could not read step input"},
+		{"no actions", []string{actionInstall}, "", "expected exactly one action"},
+		{"two actions", []string{actionInstall}, "install:\n- hazmat: {}\nupgrade:\n- hazmat: {}\n", "expected exactly one action"},
+		{"two steps", []string{actionInstall}, "install:\n- hazmat: {}\n- hazmat: {}\n", "expected exactly one step"},
+		{"malformed step", []string{actionInstall}, "install:\n- hazmat: {}\n  other: {}\n", "malformed step"},
+		{"missing file", []string{actionInstall, "-f", "missing.yaml"}, "", "could not read step input"},
 	}
 
 	for _, tc := range tests {
@@ -303,7 +305,7 @@ func TestExecute_MixinErrorPropagates(t *testing.T) {
 	wantErr := "boom"
 	m := &fakeMixin{installErr: testError(wantErr)}
 	rtCtx, _, errOut := newTestContext(installStdin)
-	code := Execute(m, []string{"install"}, rtCtx)
+	code := Execute(m, []string{actionInstall}, rtCtx)
 	if code != 1 {
 		t.Fatalf("exit code = %d, want 1", code)
 	}
@@ -316,7 +318,7 @@ func TestExecute_ContextInjected(t *testing.T) {
 	m := &fakeMixin{}
 	rtCtx, _, _ := newTestContext(installStdin)
 	rtCtx.Debug = true
-	code := Execute(m, []string{"install"}, rtCtx)
+	code := Execute(m, []string{actionInstall}, rtCtx)
 	if code != 0 {
 		t.Fatalf("exit code = %d, want 0", code)
 	}
@@ -337,7 +339,7 @@ func TestExecute_Lint(t *testing.T) {
 		lintResults: LintResults{
 			{
 				Level:    LintLevelWarning,
-				Location: LintLocation{Action: "install", Mixin: "hazmat", StepNumber: 1, StepDescription: "say hi"},
+				Location: LintLocation{Action: actionInstall, Mixin: "hazmat", StepNumber: 1, StepDescription: "say hi"},
 				Code:     "hazmat-100",
 				Title:    "example warning",
 			},
